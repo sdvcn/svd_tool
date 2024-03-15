@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/svd_tool1
+svd_tool1.so
+svd_tool1.dylib
+svd_tool1.dll
+svd_tool1.a
+svd_tool1.lib
+svd_tool1-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst

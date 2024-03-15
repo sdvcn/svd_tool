@@ -1,0 +1,53 @@
+{
+    "device": {
+        "addressUnitBits": "8",
+        "cpu": {
+            "endian": "little",
+            "fpuPresent": "true",
+            "mpuPresent": "true",
+            "name": "CM4",
+            "nvicPrioBits": "4",
+            "revision": "r0p1",
+            "vendorSystickConfig": "false"
+        },
+        "description": "STM32F401x",
+        "name": "STM32F401x",
+        "peripherals": {
+            "peripheral": {
+                "addressBlock": {
+                    "offset": "0x0",
+                    "size": "0x41",
+                    "usage": "registers"
+                },
+                "baseAddress": "0xE000ED00",
+                "description": "System control block",
+                "groupName": "SCB",
+                "name": "SCB",
+                "registers": {
+                    "register": {
+                        "access": "read-write",
+                        "addressOffset": "0x3C",
+                        "description": "Auxiliary fault status\r\n          register",
+                        "displayName": "AFSR",
+                        "fields": {
+                            "field": {
+                                "bitOffset": "0",
+                                "bitWidth": "32",
+                                "description": "Implementation defined",
+                                "name": "IMPDEF"
+                            }
+                        },
+                        "name": "AFSR",
+                        "resetValue": "0x00000000",
+                        "size": "0x20"
+                    }
+                }
+            }
+        },
+        "resetMask": "0xFFFFFFFF",
+        "resetValue": "0x0",
+        "size": "0x20",
+        "version": "1.0",
+        "width": "32"
+    }
+}
