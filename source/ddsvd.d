@@ -8,8 +8,13 @@ import std.stdio;
 import std.json;
 import std.file:readText;
 import std.range.primitives:empty;
-import std.string:replace,indexOf,isNumeric,toLower;
+import std.string:replace,indexOf,isNumeric,toLower,stripLeft,stripRight;
+import std.typecons:Yes,No;
+
 import std.conv:to;
+
+
+
 //import jsonwrap;
 
 
@@ -66,12 +71,41 @@ in(json.type == JSONType.array)
 /// 整理json值
 JSONValue jsonclean(string val)
 {
-    auto str = val.replace("\n", "").replace("\r", "");
-    while(str.indexOf("  ")>0)
+    auto str = val;
+	while(str.indexOf("\n",0,No.caseSensitive)>=0) 
+    {
+        str = str.replace("\n", "");
+    }
+	while(str.indexOf("\\n",0,No.caseSensitive)>=0) 
+    {
+        str = str.replace("\\n", "");
+    }
+
+	while(str.indexOf("\r",0,No.caseSensitive)>=0) 
+    {
+        str = str.replace("\r", "");
+    }
+	while(str.indexOf("\\r",0,No.caseSensitive)>=0) 
+    {
+        str = str.replace("\\r", "");
+    }
+
+	while(str.indexOf("\t",0,No.caseSensitive)>=0) {
+        str = str.replace("\t", "");
+    }
+
+	while(str.indexOf("\\t",0,No.caseSensitive)>=0) {
+        str = str.replace("\\t", "");
+    }
+
+    while(str.indexOf("  ",0,No.caseSensitive)>=0) 
     {
         str = str.replace("  ", " ");
     }
 
+    str = str.stripLeft().stripRight();
+
+	/*
     if(str.toLower() == "true")
     {
         return JSONValue(true);
@@ -87,6 +121,7 @@ JSONValue jsonclean(string val)
         return JSONValue(ul);
     }catch(Exception e){
     }
+	*/
 
     return JSONValue(str);
 }
@@ -99,8 +134,9 @@ in(node.length > 0)
 {
     if(node.length == 1 && node[0].type == EntityType.text){
         /// 过滤文本中所有的换行符
-        auto str = node[0].text.replace("\n", "").replace("\r", "");
-        return jsonclean(str);
+        //auto str = node[0].text.replace("\n", "").replace("\r", "");
+        //return jsonclean(str);
+		return jsonclean(node[0].text);
     }
 
 
