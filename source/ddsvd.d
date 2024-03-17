@@ -31,9 +31,10 @@ void svdtojson(string svdfile, string jsonfile)
 
     DocType doc = parseDOM!simpleXML(svdfile.readText());
 
-    auto r1 = readNode(doc.children);
+    auto r1 = JSONValue.emptyObject;
+    r1["device"] = readNode(doc.children);
     //auto j2 = JSONValue(doc.children());
-
+    
     foreach (ref JSONValue item; r1["device"]["peripherals"]["peripheral"].array)
     {
         //
@@ -51,6 +52,7 @@ void svdtojson(string svdfile, string jsonfile)
             item = temp;
         }
     }
+    
 
     r1.toJSON(false,JSONOptions.doNotEscapeSlashes).toFile(jsonfile);
 }
@@ -71,6 +73,7 @@ in(json.type == JSONType.array)
 /// 整理json值
 JSONValue jsonclean(string val)
 {
+    import std.bigint:BigInt;
     auto str = val;
 	while(str.indexOf("\n",0,No.caseSensitive)>=0) 
     {
@@ -90,11 +93,13 @@ JSONValue jsonclean(string val)
         str = str.replace("\\r", "");
     }
 
-	while(str.indexOf("\t",0,No.caseSensitive)>=0) {
+	while(str.indexOf("\t",0,No.caseSensitive)>=0) 
+    {
         str = str.replace("\t", "");
     }
 
-	while(str.indexOf("\\t",0,No.caseSensitive)>=0) {
+	while(str.indexOf("\\t",0,No.caseSensitive)>=0) 
+    {
         str = str.replace("\\t", "");
     }
 
@@ -105,7 +110,7 @@ JSONValue jsonclean(string val)
 
     str = str.stripLeft().stripRight();
 
-	/*
+	
     if(str.toLower() == "true")
     {
         return JSONValue(true);
@@ -117,11 +122,11 @@ JSONValue jsonclean(string val)
     }
 
     try{
-        ulong ul = str.to!ulong;
+        ulong ul = BigInt(str).toLong();
         return JSONValue(ul);
     }catch(Exception e){
     }
-	*/
+	
 
     return JSONValue(str);
 }
@@ -132,13 +137,11 @@ JSONValue readNode(DocType[] node,DocAttrib[] attrib = null)
 //in(node.type == EntityType.elementStart)
 in(node.length > 0)
 {
-    if(node.length == 1 && node[0].type == EntityType.text){
-        /// 过滤文本中所有的换行符
-        //auto str = node[0].text.replace("\n", "").replace("\r", "");
-        //return jsonclean(str);
-		return jsonclean(node[0].text);
+    if(node.length == 1)
+    {
+        if ( node[0].type == EntityType.text) return jsonclean(node[0].text);
+        if ( node[0].type == EntityType.elementStart ) return readNode(node[0].children,node[0].attributes.empty? null:node[0].attributes);
     }
-
 
     JSONValue json = JSONValue.emptyObject;
 
@@ -151,6 +154,7 @@ in(node.length > 0)
     foreach (item; node)
     {
         if(item.type == EntityType.text){
+            assert(false,"text node is not allowed");
         }
         
         if(item.type == EntityType.elementStart)

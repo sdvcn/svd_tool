@@ -3,9 +3,6 @@ import std.getopt;
 
 import ddsvd;
 
-
-
-
 void main(string[] args)
 {
 
