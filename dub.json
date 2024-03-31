@@ -4,7 +4,8 @@
 	],
 	"copyright": "Copyright © 2024, sdv",
 	"dependencies": {
-		"dxml": "~>0.4.4"
+		"dxml": "~>0.4.4",
+		"jsonwrap": "~>1.0.5"
 	},
 	"description": "A minimal D application.",
 	"license": "proprietary",

@@ -15,7 +15,7 @@ import std.conv:to;
 
 
 
-//import jsonwrap;
+import jsonwrap;
 
 
 
@@ -32,15 +32,19 @@ void svdtojson(string svdfile, string jsonfile)
     DocType doc = parseDOM!simpleXML(svdfile.readText());
 
     auto r1 = JSONValue.emptyObject;
-    r1["device"] = readNode(doc.children);
+    r1 = readEntity(doc.children);
     //auto j2 = JSONValue(doc.children());
     
-    foreach (ref JSONValue item; r1["device"]["peripherals"]["peripheral"].array)
+
+    auto peris = r1.read!JSONValue("/device/peripherals/peripheral");
+
+    
+    foreach (ref JSONValue item; peris.array)
     {
         //
         if("derivedFrom" in item)
         {
-            auto jsonStr = queryPeripherals(r1["device"]["peripherals"]["peripheral"],item["derivedFrom"].str).toString;
+            auto jsonStr = queryPeripherals(peris,item["derivedFrom"].str).toString;
 
             JSONValue temp = parseJSON(jsonStr);
             
@@ -52,6 +56,7 @@ void svdtojson(string svdfile, string jsonfile)
             item = temp;
         }
     }
+    
     
 
     r1.toJSON(false,JSONOptions.doNotEscapeSlashes).toFile(jsonfile);
@@ -133,14 +138,12 @@ JSONValue jsonclean(string val)
 
 
 /// 递归读取xml节点
-JSONValue readNode(DocType[] node,DocAttrib[] attrib = null)
-//in(node.type == EntityType.elementStart)
-in(node.length > 0)
+JSONValue readEntity(DocType[] node,DocAttrib[] attrib = null)
+in(!node.empty)
 {
     if(node.length == 1)
     {
         if ( node[0].type == EntityType.text) return jsonclean(node[0].text);
-        if ( node[0].type == EntityType.elementStart ) return readNode(node[0].children,node[0].attributes.empty? null:node[0].attributes);
     }
 
     JSONValue json = JSONValue.emptyObject;
@@ -161,28 +164,53 @@ in(node.length > 0)
         {
             
             if(item.name.empty){
-                json = readNode(item.children);
+                json = readEntity(item.children);
             }else{
-                if(item.name in json)
-                {
-                    if(json[item.name].type == JSONType.array){
-                        json[item.name].array ~= readNode(item.children,item.name.empty? null:item.attributes);
+
+                if(item.isValueOne){
+
+                    if(item.name in json)
+                    {
+                        if(json[item.name].type != JSONType.array)
+                        {
+                            auto swap = json[item.name];
+                            json[item.name] = JSONValue.emptyArray;
+                            json[item.name].array ~= swap;
+                        }
+                        json[item.name].array ~= readEntity(item.children);
                     }else{
+                        json[item.name] = readEntity(item.children);
+                    }
+                }else{
+                    if(item.name !in json)
+                    {
+                        json[item.name] = JSONValue.emptyArray;
+                    }
+
+                    if(json[item.name].type != JSONType.array)
+                    {
                         auto swap = json[item.name];
                         json[item.name] = JSONValue.emptyArray;
                         json[item.name].array ~= swap;
-                        json[item.name].array ~= readNode(item.children,item.name.empty? null:item.attributes);
                     }
-                }else{
-                    json[item.name] = readNode(item.children,item.name.empty? null:item.attributes);
+                    json[item.name].array ~= readEntity(item.children,item.attributes);
                 }
             }
         }
-        
-        
-    }
-    
+    }    
     return json;
 }
 
+/// 检查节点是否为一个value节点
+bool isValueOne(DocType node)
+{
+    if(
+        (node.children[0].type == EntityType.text)
+    ) return true;
 
+    if(
+        (node.children[0].type == EntityType.elementStart)
+    ) return true;
+
+    return false;
+}
